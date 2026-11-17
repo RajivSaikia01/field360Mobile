@@ -16,6 +16,16 @@ A mobile app prototype that runs entirely in the browser. It opens with the Exce
 `?clean=1` hides the small presenter tab on the left edge (it switches role, access and screen).
 `?app=1` shows the phone layout, as a centred column, on a computer.
 
+## Who is signed in (the view)
+The app opens as a **Unit Manager** of one unit. To look at it as someone else, open **Account** (tap the avatar, top
+right) and choose a view under **View as**: Unit Manager (one unit), Zonal Head (one zone), Region Manager (one
+region), HO member or Audit staff (whole organisation). Each changes the role and the area together, like a
+different signed-in user.
+
+To open straight into a view, add `view=` to the link, for example
+`https://YOURNAME.github.io/REPO/?clean=1&view=zh` (`um`, `zh`, `rm`, `ho` or `audit`). A reload in the same tab
+keeps the view you chose.
+
 ## Install on Android (Chrome)
 Open the link in Chrome, then either tap **Install Field360 on this phone** on the sign-in screen, or use the menu
 (three dots) and choose **Install app**. It then opens from its own icon, full screen. The phone's Back button or
