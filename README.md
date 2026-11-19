@@ -49,6 +49,24 @@ every visit inside the areas they own.
 **Filters:** the Process and Sub-process filters are phone-style pickers: tap the field and a bottom sheet opens with a
 tick list (the long sub-process list has a search box). The Sub-process field stays dimmed until a process is chosen.
 
+## Application sheet: when `snapshot_date` is the day the status changed
+With `application_number` (one row per application) the date column can be **the day the application reached that status**,
+either as one row for every status change, or as one row per application with its latest status and that day. The app reads the
+file this way when it has **more than 7 different dates and applications do not repeat a status**. (In a snapshot file every
+application repeats its status on every date, so it is read as snapshots. A file whose rows all carry one date is a single
+snapshot with no history.)
+
+The stage an application was in *before* its first recorded status is not in such a file, so the app takes it as **Enroll** from
+the application date (as **Active** if the first status is **Closed**). Then:
+- **Pending, Disbursed and Rejected are exact at every month-end**, so **Carried over** (pending at the start of a month, and
+  what became of them) is right. In my test, rebuilt from only each application's latest status it found all 2,188 truly
+  carried-over applications and 13 extra (99.4% precision).
+- The **Movement** tab is back (opening, in, out, closing by stage, and the biggest moves). With a row for **every** status
+  change it is exact. With only the latest status per application, where an application moved *from* before its recorded
+  status is an assumption, and the screen says so.
+- The Data sources check and `update_data.py` say how the file was read and how many applications had an assumed start.
+With counts (`applications` column) it works as before, comparing one snapshot with the next (an estimate of the moves).
+
 ## LD (loan disbursement) sheet: the columns
 `as_of, branch_id, unit_id, region_id, cluster_id, zone_id, cre_id, cre_name, center_id, center_name, count_le_16k, count_17k_40k,
 count_41k_60k, count_61k_80k, count_81k_1l, count_gt_1l, grand_total, tenure_2y_gt_70k, tenure_3y_gt_70k, tenure_1y, tenure_2y,
