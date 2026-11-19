@@ -49,23 +49,53 @@ every visit inside the areas they own.
 **Filters:** the Process and Sub-process filters are phone-style pickers: tap the field and a bottom sheet opens with a
 tick list (the long sub-process list has a search box). The Sub-process field stays dimmed until a process is chosen.
 
-## FTOD: no loan is skipped
-Every loan of the FTOD sheet is kept. A loan with no `loan_id` is counted as its own loan; one with no start date
-(`created_on`) is counted from its `as_of` date; one that starts after the latest `as_of` is counted from the latest date in
-the sheet; and one on a branch that is not in the geography sheet is kept under the unit in its `unit_id`, on a branch shown
-as "(not in geography)". The Data sources check says how many loans were handled each way. Only rows marked `is_deleted`, and
-loans whose branch **and** `unit_id` are both unknown (they cannot be shown anywhere), are left out, and the check names them.
+## Nothing is made up
+`index.html` and `field.html` are **clean pages with no data inside**. Until you load your files the app shows its built-in demo.
+Once your geography is loaded, **only your files are shown**: a sheet you have not uploaded (or an empty one) shows nothing, and
+there are no invented SFOs, centers, customers, visits or figures. A month with no rows in your file shows nothing for that month.
+Every sheet you load replaces what was there; with `--sheet all`, a sheet that is missing from the workbook is cleared.
 
-**"Today" follows the data.** It is the latest `as_of` or loan start date in the FTOD sheet, never past the real calendar day.
-If `as_of` is not updated but loans keep starting, the numbers still move. (Before, loans that started after `as_of` were
-dropped and "today" stayed on `as_of`: in a test with `as_of` stuck on 10 Oct only 470 of 1,433 loans were kept.)
+**Every figure is filtered by `unit_id`.** FTOD, LD, Demand vs Collection and Application each carry a `unit_id`, a unit's totals
+are the rows with its `unit_id`, and a unit manager (users sheet, same `unit_id`) sees only that unit.
 
-## Dates and the application funnel
-- The date range on every screen, including Application, runs to the latest day of the data. The quick date chips follow the
-  calendar: if the data runs to yesterday the latest day is labelled **Yesterday**; older data is labelled "Latest · 28 Oct".
-- In the Application funnel, each stage has a **Now at** line with the status-wise numbers (for example *Enroll (R)*,
-  *Bureau Check (B)* under Enrolment; *Pre Sanction QC (S1)* and *Pre Sanction Credit (P1, S2, S3, S4)* under Pre-sanction),
-  in Count, Amount and Percent, and a line for Draft and Rejected, which are outside the funnel.
+**Which column is the date** (each screen filters on it): FTOD `as_of` (the FTOD date; cleared status in
+`as_of_yesterday_ftod_cleared_status`), LD `disbursement_date`, Demand vs Collection `date`, Application `application_date`,
+Field Visit `visit_date`.
+
+## FTOD
+**The columns.** `as_of` is the **FTOD date**: the day the loan went FTOD (first time overdue). `as_of_yesterday_ftod_cleared_status`
+says whether that FTOD is cleared (TRUE or FALSE). `created_on` is not used. If the file also has `ftod_cleared_date`, a loan
+counts as cleared on a chosen day only when that date is on or before it.
+
+**The date you choose.** FTOD has a date only (no Month to date). For the date you pick, say the 18th:
+- **BD** = the FTOD from the 1st of the month to the day before (1st to 17th).
+- **New** = the FTOD on the chosen date (the 18th).
+- **Collected** = the part of BD and New that is cleared.
+- **Not clear** = the rest, so BD + New − Collected = Not clear.
+
+**No loan is skipped.** A loan with no `loan_id` is counted as its own loan. Each FTOD date of a loan is a case of its own, and two
+rows for the same loan and date count once. A loan on a branch that is not in the geography sheet is kept under the unit in its
+`unit_id`, on a branch shown as "(not in geography)". Only rows marked `is_deleted`, and loans whose branch **and** `unit_id` are
+both unknown, are left out, and the Data sources check names them. A date after today is a typo: it never counts as the last day,
+and its loan is kept, counted from the last valid day.
+
+**The "Sep FTOD cleared" tab** (last month's loans cleared this month) needs a cleared date; with only the TRUE/FALSE flag it
+cannot show real numbers.
+
+## Dates, LD and the application funnel
+- **The date range** on every screen runs to the last day of the data. The date picker runs to **yesterday** (or to the last data
+  day if that is later). With no file loaded the app opens on yesterday. The quick chips follow the calendar: data to yesterday is
+  labelled **Yesterday**; older data is labelled "Latest · 18 Nov".
+- **A date after today** is treated as a typo. In Application and LD the row is left out and the check says so; in FTOD the loan
+  is kept. No dataset can move "today" past the real calendar day.
+- **LD:** the date of a row is **`disbursement_date`** (a single day, Month to date and past months all filter on it). `as_of` is
+  the day the file was extracted and is optional: if two rows have the same branch, SFO, center and `disbursement_date`, rows
+  with the same `as_of` are added together and the latest `as_of` is used. A file with only `as_of` still works, and a file of
+  running month totals is still recognised when `as_of` is the date.
+- **Application:** every filter (a day, Month to date, a past month) works on `application_date`.
+- In the Application funnel, each stage has a **Now at** line with the status-wise numbers (for example *Enroll (R)*, *Bureau
+  Check (B)* under Enrolment; *Pre Sanction QC (S1)* and *Pre Sanction Credit (P1, S2, S3, S4)* under Pre-sanction), in Count,
+  Amount and Percent, and a line for Draft and Rejected, which are outside the funnel.
 
 ## Units: `unit_id` in the data files
 FTOD, LD, DC and the applications each have a **`unit_id`** column, and the unit of a branch is taken from it. A unit's totals
@@ -93,6 +123,8 @@ Active (or blank) can sign in; anyone else sees "This account is not active". In
 `EMPLOYEECODE` of the user; the app shows that user's name (the code if the person is not in the users sheet).
 
 ## LD (loan disbursement) sheet: the columns
+
+The first column is **`disbursement_date`**, the day the loans were disbursed. `as_of` (the extract day) is optional.
 `as_of, branch_id, unit_id, region_id, cluster_id, zone_id, cre_id, cre_name, center_id, center_name, count_le_16k, count_17k_40k,
 count_41k_60k, count_61k_80k, count_81k_1l, count_gt_1l, grand_total, tenure_2y_gt_70k, tenure_3y_gt_70k, tenure_1y, tenure_2y,
 tenure_3y, new_loans, repeat_le_50k, repeat_gt_50k, new_amount, repeat_amount, nqa, qa, net_loans, net_amount, entity`

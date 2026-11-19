@@ -16,7 +16,7 @@ What it needs:  Python 3.8+ (nothing to install) and Node.js (https://nodejs.org
 How it works:   the app's OWN loader (inside the HTML file) reads the Excel file, so the data is read exactly as
                 the app reads it when you choose the file by hand. The result replaces the data in the HTML files.
                 Every sheet in the Excel file replaces what was there: a sheet that is empty or missing is not
-                carried over from the old data (the app then shows its built-in sample figures for it).
+                carried over from the old data (the app then shows nothing for it: no figures are ever made up).
 Privacy:        the data becomes part of the HTML files. Anyone who can open those files can read it.
 """
 import argparse, json, os, re, shutil, stat, subprocess, sys, tempfile, time

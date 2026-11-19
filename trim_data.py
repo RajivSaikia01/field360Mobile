@@ -31,7 +31,7 @@ NS_PKG = "http://schemas.openxmlformats.org/package/2006/relationships"
 
 # the sheets the app trims itself (last three months), with the names and date columns it accepts
 TARGETS = {
-    "ld": (["ld", "disbursement", "loan_disbursement"], ["as_of"]),
+    "ld": (["ld", "disbursement", "loan_disbursement"], ["disbursement_date", "disbursed_date", "disbursement_on", "disbursed_on", "loan_disbursement_date", "disb_date", "as_of"]),
     "dc": (["dc", "demand_collection", "demand_vs_collection", "collection"],
            ["date", "collection_date", "demand_date", "business_date", "as_on_date", "as_on", "txn_date", "as_of"]),
     "field_visit": (["field_visit", "field_visits", "fieldvisit", "visits"], ["visit_date", "date", "visited_on"]),
