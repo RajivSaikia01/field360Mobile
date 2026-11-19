@@ -49,6 +49,24 @@ every visit inside the areas they own.
 **Filters:** the Process and Sub-process filters are phone-style pickers: tap the field and a bottom sheet opens with a
 tick list (the long sub-process list has a search box). The Sub-process field stays dimmed until a process is chosen.
 
+## FTOD: no loan is skipped
+Every loan of the FTOD sheet is kept. A loan with no `loan_id` is counted as its own loan; one with no start date
+(`created_on`) is counted from its `as_of` date; one that starts after the latest `as_of` is counted from the latest date in
+the sheet; and one on a branch that is not in the geography sheet is kept under the unit in its `unit_id`, on a branch shown
+as "(not in geography)". The Data sources check says how many loans were handled each way. Only rows marked `is_deleted`, and
+loans whose branch **and** `unit_id` are both unknown (they cannot be shown anywhere), are left out, and the check names them.
+
+**"Today" follows the data.** It is the latest `as_of` or loan start date in the FTOD sheet, never past the real calendar day.
+If `as_of` is not updated but loans keep starting, the numbers still move. (Before, loans that started after `as_of` were
+dropped and "today" stayed on `as_of`: in a test with `as_of` stuck on 10 Oct only 470 of 1,433 loans were kept.)
+
+## Dates and the application funnel
+- The date range on every screen, including Application, runs to the latest day of the data. The quick date chips follow the
+  calendar: if the data runs to yesterday the latest day is labelled **Yesterday**; older data is labelled "Latest · 28 Oct".
+- In the Application funnel, each stage has a **Now at** line with the status-wise numbers (for example *Enroll (R)*,
+  *Bureau Check (B)* under Enrolment; *Pre Sanction QC (S1)* and *Pre Sanction Credit (P1, S2, S3, S4)* under Pre-sanction),
+  in Count, Amount and Percent, and a line for Draft and Rejected, which are outside the funnel.
+
 ## Units: `unit_id` in the data files
 FTOD, LD, DC and the applications each have a **`unit_id`** column, and the unit of a branch is taken from it. A unit's totals
 are the totals of the rows that carry its `unit_id`; the branches of the unit are the branches whose rows carry it, followed
