@@ -49,23 +49,30 @@ every visit inside the areas they own.
 **Filters:** the Process and Sub-process filters are phone-style pickers: tap the field and a bottom sheet opens with a
 tick list (the long sub-process list has a search box). The Sub-process field stays dimmed until a process is chosen.
 
-## Application sheet: when `snapshot_date` is the day the status changed
-With `application_number` (one row per application) the date column can be **the day the application reached that status**,
-either as one row for every status change, or as one row per application with its latest status and that day. The app reads the
-file this way when it has **more than 7 different dates and applications do not repeat a status**. (In a snapshot file every
-application repeats its status on every date, so it is read as snapshots. A file whose rows all carry one date is a single
-snapshot with no history.)
+## Units: `unit_id` in the data files
+FTOD, LD, DC and the applications each have a **`unit_id`** column, and the unit of a branch is taken from it. A unit's totals
+are the totals of the rows that carry its `unit_id`; the branches of the unit are the branches whose rows carry it, followed
+by the SFOs (`cre_id`) and centers where the files have them. A user sees the unit assigned to them (users sheet) and its
+branches below it. If the geography sheet puts a branch under a different unit, **the `unit_id` in the data is used**, and the
+Data sources screen ("Branches and their units") says how many branches differ. A `unit_id` must be the `geo_id` of a unit in
+the geography sheet, otherwise it is ignored; a branch whose rows name more than one unit gets the most frequent one.
 
-The stage an application was in *before* its first recorded status is not in such a file, so the app takes it as **Enroll** from
-the application date (as **Active** if the first status is **Closed**). Then:
-- **Pending, Disbursed and Rejected are exact at every month-end**, so **Carried over** (pending at the start of a month, and
-  what became of them) is right. In my test, rebuilt from only each application's latest status it found all 2,188 truly
-  carried-over applications and 13 extra (99.4% precision).
-- The **Movement** tab is back (opening, in, out, closing by stage, and the biggest moves). With a row for **every** status
-  change it is exact. With only the latest status per application, where an application moved *from* before its recorded
-  status is an assumption, and the screen says so.
-- The Data sources check and `update_data.py` say how the file was read and how many applications had an assumed start.
-With counts (`applications` column) it works as before, comparing one snapshot with the next (an estimate of the moves).
+## Application sheet
+One row for each application, with its **current** status: `application_number, application_date, customer_id, customer_name,
+branch_id, center_id, center_name, cre_id, cre_name, status, applied_amount, sanctioned_date, sanctioned_amount, unit_id`
+(`sanctioned_date` and `sanctioned_amount` are not used).
+- **Punched** counts applications by `application_date` (the month and date filters) and shows the funnel, in the stages of the
+  `status_codes` sheet: 1 Enrolment (R, B), 2 Group training (C1, G1), 3 Pre-sanction (S1, P1, S2, S3, S4), 4 Sanctioned (S),
+  5 Disbursed (A, Y). Draft (D) and Rejected (X) are outside the funnel. S2, S3 and S4 are shown as Sanctioned but sit in stage 3.
+- **Carried over** takes the applications with an `application_date` in the month **before** the one you are viewing and shows
+  what became of them: disbursed, rejected, still pending (and in which stage), with a list of the pending ones.
+- There is no Movement tab. Use the status **codes** in the file: the description *Pre Sanction Credit* is shared by P1, S2, S3
+  and S4 and is read as P1. Older files with `snapshot_date` or an `applications` count column are still read.
+
+## Users: Employment Status
+Columns: `EMPLOYEECODE, Employee Name, Employment Status, unit_id, Unit, is_ho_user`. Only users whose Employment Status is
+Active (or blank) can sign in; anyone else sees "This account is not active". In `field_visit`, `created_by` is the
+`EMPLOYEECODE` of the user; the app shows that user's name (the code if the person is not in the users sheet).
 
 ## LD (loan disbursement) sheet: the columns
 `as_of, branch_id, unit_id, region_id, cluster_id, zone_id, cre_id, cre_name, center_id, center_name, count_le_16k, count_17k_40k,
@@ -78,21 +85,6 @@ the amount of repeat loans above 50K only if it is there). The LD screen no long
 `loan_1_with_org` ... `loan_gt_3_with_org` columns are not needed (if they are present they are ignored), and the data check
 for them is gone. Files that still use the older `amt_...` names for the buckets are read too.
 `update_data.py` and `trim_data.py` work with this structure unchanged: both use the `as_of` date and the app's own reader.
-
-## Application sheet: two ways to send it
-Every row has `snapshot_date, branch_id, cre_id, cre_name, center_id, center_name, application_date, status`, plus **one** of:
-
-- **`applications` + `applied_amount`**: a count per row (how many applications of that branch, SFO, center and application date
-  were in that status on that snapshot date, and their total amount). Movement is then an estimate.
-- **`application_number` + `applied_amount`**: one row per application per snapshot, with the same `application_number`
-  (also read as `application_id`, `app_number`, `application_no`, `app_id`) every time that application appears, and
-  `applied_amount` the amount of that one application. Movement and Carried over then use the real change of each
-  application between snapshots.
-
-Send one style or the other in a sheet. Either way every snapshot must list every application in the pipeline, including
-Disbursed (A, Y) and Rejected (X), and Movement and Carried over need at least two `snapshot_date` values. A file with several
-snapshot dates and neither `application_number` nor `applications` is **refused**, because the same application in two
-snapshots cannot be told from two different applications.
 
 ## Users and sign-in (the `users` sheet)
 Add a sheet named **users** to the data workbook with these columns: `EMPLOYEECODE`, `Employee Name`, `unit_id`, `Unit`,
@@ -108,8 +100,7 @@ Add a sheet named **users** to the data workbook with these columns: `EMPLOYEECO
 - A user whose `unit_id` is not in the geography sheet is skipped, and the updater names them.
 - With no users sheet, anyone can sign in (the old prototype behaviour).
 
-**Sample account IDs** (the sample data): HO users `S012595` and `S014020`; a regional manager `E00019`; unit users
-`E00001`, `E00039`, `E00069`, `E00098` and the others on the sample `users` sheet.
+**Sample account IDs** (the sample data): HO users `S012595` and `S014020`; a regional manager `E00019`; unit managers `E00001`, `E00039`, `E00069`, `E00098` and the others on the sample `users` sheet; `E00469` is marked Resigned and cannot sign in.
 
 **Important: this is a gate inside the app, not security.** The data of every user is part of the app file, so anyone who
 can open the file (or the page source) can read all of it. Do not publish real confidential data on a public GitHub
