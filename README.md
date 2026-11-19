@@ -49,6 +49,33 @@ every visit inside the areas they own.
 **Filters:** the Process and Sub-process filters are phone-style pickers: tap the field and a bottom sheet opens with a
 tick list (the long sub-process list has a search box). The Sub-process field stays dimmed until a process is chosen.
 
+## LD (loan disbursement) sheet: the columns
+`as_of, branch_id, unit_id, region_id, cluster_id, zone_id, cre_id, cre_name, center_id, center_name, count_le_16k, count_17k_40k,
+count_41k_60k, count_61k_80k, count_81k_1l, count_gt_1l, grand_total, tenure_2y_gt_70k, tenure_3y_gt_70k, tenure_1y, tenure_2y,
+tenure_3y, new_loans, repeat_le_50k, repeat_gt_50k, new_amount, repeat_amount, nqa, qa, net_loans, net_amount, entity`
+(a header written `grand total` with a space is read too). The `count_` columns are loans by amount; `grand_total` is the
+number of loans and `net_amount` the amount disbursed. `unit_id`, `region_id`, `cluster_id`, `zone_id`, `entity` and `net_loans`
+may be in the sheet but are not read (the geography sheet defines the hierarchy). Optional: `repeat_gt_50k_amount` (BPR shows
+the amount of repeat loans above 50K only if it is there). The LD screen no longer has "Loans with the organisation", so the
+`loan_1_with_org` ... `loan_gt_3_with_org` columns are not needed (if they are present they are ignored), and the data check
+for them is gone. Files that still use the older `amt_...` names for the buckets are read too.
+`update_data.py` and `trim_data.py` work with this structure unchanged: both use the `as_of` date and the app's own reader.
+
+## Application sheet: two ways to send it
+Every row has `snapshot_date, branch_id, cre_id, cre_name, center_id, center_name, application_date, status`, plus **one** of:
+
+- **`applications` + `applied_amount`**: a count per row (how many applications of that branch, SFO, center and application date
+  were in that status on that snapshot date, and their total amount). Movement is then an estimate.
+- **`application_number` + `applied_amount`**: one row per application per snapshot, with the same `application_number`
+  (also read as `application_id`, `app_number`, `application_no`, `app_id`) every time that application appears, and
+  `applied_amount` the amount of that one application. Movement and Carried over then use the real change of each
+  application between snapshots.
+
+Send one style or the other in a sheet. Either way every snapshot must list every application in the pipeline, including
+Disbursed (A, Y) and Rejected (X), and Movement and Carried over need at least two `snapshot_date` values. A file with several
+snapshot dates and neither `application_number` nor `applications` is **refused**, because the same application in two
+snapshots cannot be told from two different applications.
+
 ## Users and sign-in (the `users` sheet)
 Add a sheet named **users** to the data workbook with these columns: `EMPLOYEECODE`, `Employee Name`, `unit_id`, `Unit`,
 `is_ho_user`. Then run `update_data.py` as usual.
