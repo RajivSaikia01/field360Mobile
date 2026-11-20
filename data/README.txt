@@ -1,7 +1,3 @@
-Put your Field360 data workbook in this folder.
-
-  field360-input-data-template.xlsx   the empty template: send it to your data team to fill in
-  field360-data.xlsx                  YOUR filled workbook (use exactly this name if you want GitHub to update
-                                      the site by itself; for the local updater any name works)
-
-The updater ignores any file with "template" in its name.
+Put your Excel workbook here if you want to keep a copy with the site.
+The app reads the workbook in the browser: open Data sources > One file for everything and choose the file.
+The template (field360-input-data-template.xlsx) shows every sheet and column.

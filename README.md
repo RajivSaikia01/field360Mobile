@@ -1,3 +1,8 @@
+# READY TO UPLOAD: these pages already contain your data (with the November AOP)
+
+`index.html` and `field.html` were built from `field360-input-data-for-presentation-with-nov-aop.xlsx`. Upload this folder to GitHub as it is.
+**The data is inside the pages: anyone who can open the site can read it** (customer names, mobile numbers, employee names). Keep the repository private, or protect the site.
+
 # Field360 mobile app (UI acceptance)
 
 A mobile app prototype that runs entirely in the browser. It opens with the Excel data already loaded, works on
@@ -49,11 +54,14 @@ every visit inside the areas they own.
 **Filters:** the Process and Sub-process filters are phone-style pickers: tap the field and a bottom sheet opens with a
 tick list (the long sub-process list has a search box). The Sub-process field stays dimmed until a process is chosen.
 
+**Who can pick another person.** The *Everyone* selector (Visited by) and searching by person are for **Unit Managers and above**. Anyone below UM (access to a
+branch or less) sees no selector, the search box says "Search place or centre", and the list holds only their own visits.
+
 ## Nothing is made up
 `index.html` and `field.html` are **clean pages with no data inside**. Until you load your files the app shows its built-in demo.
 Once your geography is loaded, **only your files are shown**: a sheet you have not uploaded (or an empty one) shows nothing, and
 there are no invented SFOs, centers, customers, visits or figures. A month with no rows in your file shows nothing for that month.
-Every sheet you load replaces what was there; with `--sheet all`, a sheet that is missing from the workbook is cleared.
+Every sheet you load replaces what was there.
 
 **Every figure is filtered by `unit_id`.** FTOD, LD, Demand vs Collection and Application each carry a `unit_id`, a unit's totals
 are the rows with its `unit_id`, and a unit manager (users sheet, same `unit_id`) sees only that unit.
@@ -61,6 +69,11 @@ are the rows with its `unit_id`, and a unit manager (users sheet, same `unit_id`
 **Which column is the date** (each screen filters on it): FTOD `as_of` (the FTOD date; cleared status in
 `as_of_yesterday_ftod_cleared_status`), LD `disbursement_date`, Demand vs Collection `date`, Application `application_date`,
 Field Visit `visit_date`.
+
+**Home and Alerts show only real things.** With your data loaded there is no sample route, no sample tasks, no sample alerts and no
+"Sample figures" badge: the route card is empty until you plan one, My Day counts only your own tasks, and Alerts says there are
+none. Each module (Loan disbursement, Demand vs Collection, Application) says where its file ends ("Demand vs Collection data ends
+on 31 Oct 2026"), and the Home collection card uses the latest month that has Demand vs Collection data.
 
 ## FTOD
 **The columns.** `as_of` is the **FTOD date**: the day the loan went FTOD (first time overdue). `as_of_yesterday_ftod_cleared_status`
@@ -96,6 +109,25 @@ cannot show real numbers.
 - In the Application funnel, each stage has a **Now at** line with the status-wise numbers (for example *Enroll (R)*, *Bureau
   Check (B)* under Enrolment; *Pre Sanction QC (S1)* and *Pre Sanction Credit (P1, S2, S3, S4)* under Pre-sanction), in Count,
   Amount and Percent, and a line for Draft and Rejected, which are outside the funnel.
+
+## BPR: AOP targets, commitments and staff
+- **Targets exist only for LD and BPR.** Collection has none: the Home collection card shows efficiency, OD amount, OD collected and advance collection, with no
+  target, gap or 95%.
+- **AOP (targets).** The `aop` sheet has `month, branch_id, aop_count, aop_amount`: loans and amount **in crore** (1.15 is ₹1.15 Cr; a value of 1000 or more is read as
+  rupees), by branch and month. A unit's (or region's) target is the sum of its branches, worked out from the geography sheet. The LD screen shows the target of the
+  viewed month and how much is achieved. A month with no AOP row shows "no AOP target"; nothing is ever made up.
+- **Commitments.** The Unit Manager gives the **monthly commitment by the 5th** of the month (new, repeat and repeat above ₹50K, loans and amount in lakh); the real
+  rule **freezes it after the 5th**. For the demo the monthly form is kept open (a switch on the form: *Demo: the monthly commitment is kept open. Tap to use the real
+  rule*). After the month is given, **each week** the UM gives a weekly commitment in the same form **without "Repeat above ₹50K"**; only the current week can be filled.
+- **Month to date is adjusted by the weekly commitments.** The commitment to date is, for every week that has started, that week's own commitment if the UM gave one,
+  otherwise that week's share of the monthly commitment (days in the week ÷ days in the month). So the number moves as weekly commitments are added. The BPR sheet shows it
+  next to how much of the monthly commitment is fulfilled; the achieved figures come from LD.
+- **Staff and manpower.** Weeks are the calendar week of the year (this week is 47). **Required** headcount comes from the admin (dummy figures for now). **Manage staff**
+  lists the HR file's staff for the branch with a ✕: remove a person who has moved out (they stay out in later weeks). Add a person who is here for a short time as
+  temporary staff (that week only); the app **asks whether that person is in training**. A person in training is counted under *Training*, not under the people in the
+  list, so the shortfall stays right. The staff screen shows *Training n · Total (Actual + Training)*.
+  In Manage staff, the sheet states the effect of your edits (for example "Actual was 3, now 3 · −1 moved out · +1 temporary working"), asks about training at the
+  top, and Save will not close while that question is unanswered.
 
 ## Units: `unit_id` in the data files
 FTOD, LD, DC and the applications each have a **`unit_id`** column, and the unit of a branch is taken from it. A unit's totals
@@ -134,11 +166,10 @@ may be in the sheet but are not read (the geography sheet defines the hierarchy)
 the amount of repeat loans above 50K only if it is there). The LD screen no longer has "Loans with the organisation", so the
 `loan_1_with_org` ... `loan_gt_3_with_org` columns are not needed (if they are present they are ignored), and the data check
 for them is gone. Files that still use the older `amt_...` names for the buckets are read too.
-`update_data.py` and `trim_data.py` work with this structure unchanged: both use the `as_of` date and the app's own reader.
 
 ## Users and sign-in (the `users` sheet)
 Add a sheet named **users** to the data workbook with these columns: `EMPLOYEECODE`, `Employee Name`, `unit_id`, `Unit`,
-`is_ho_user`. Then run `update_data.py` as usual.
+`is_ho_user`.
 
 - A user signs in with **only their account ID** (the `EMPLOYEECODE`). There is no password. Capital letters and spaces
   around the ID do not matter. An ID that is not in the sheet is refused.
@@ -147,7 +178,7 @@ Add a sheet named **users** to the data workbook with these columns: `EMPLOYEECO
   unit, a region or a zone, or several of them separated by commas or the word "and".
 - `is_ho_user` = **YES** gives the whole organisation (write `unit_id` as `HO and <head office geo_id>` if you like) and
   access to Data sources. Everyone else cannot change their role or area, use the "View as" switch or open Data sources.
-- A user whose `unit_id` is not in the geography sheet is skipped, and the updater names them.
+- A user whose `unit_id` is not in the geography sheet is skipped, and the Data sources screen names them.
 - With no users sheet, anyone can sign in (the old prototype behaviour).
 
 **Sample account IDs** (the sample data): HO users `S012595` and `S014020`; a regional manager `E00019`; unit managers `E00001`, `E00039`, `E00069`, `E00098` and the others on the sample `users` sheet; `E00469` is marked Resigned and cannot sign in.
@@ -155,48 +186,6 @@ Add a sheet named **users** to the data workbook with these columns: `EMPLOYEECO
 **Important: this is a gate inside the app, not security.** The data of every user is part of the app file, so anyone who
 can open the file (or the page source) can read all of it. Do not publish real confidential data on a public GitHub
 site. For real protection the data has to be served by a backend after a real sign-in.
-
-## Very large Excel files (Node.js runs out of memory)
-`update_data.py` needs memory in proportion to the **heaviest sheet** it reads: about **25 times that sheet's size when the
-file is opened** (the 79 MB `ld` sheet of the sample needs about 2 GB). Do these in order:
-
-1. **See which sheet is heavy** (changes nothing; needs only Python):
-   ```
-   python trim_data.py data/my-data.xlsx --report
-   ```
-   It lists each sheet's opened size, its rows, the memory it needs, and the `--memory` value to use.
-2. **Update one sheet at a time** instead of the whole file. Each step reads only that sheet and keeps everything else
-   already in the pages, so the update needs only the heaviest sheet's memory, not the whole file's:
-   ```
-   python update_data.py data/my-data.xlsx --sheet geography          (always first)
-   python update_data.py data/my-data.xlsx --sheet process_and_subprocess users
-   python update_data.py data/my-data.xlsx --sheet ld
-   python update_data.py data/my-data.xlsx --sheet dc field_visit hr applications ftod aop
-   ```
-   or all of them, one after the other, in one command: `python update_data.py data/my-data.xlsx --sheet all`.
-   Sheet names: `geography, process_and_subprocess, users, ftod, ld, aop, hr, applications, dc, field_visit`.
-   Add `--memory 8192` (about half your RAM; Node must be 64-bit: `node -p "process.arch"` says `x64`).
-   A step that fails leaves the steps before it saved; fix it and run just that sheet again.
-3. **Make the heavy sheet smaller.** The app keeps only the **last three months** of `ld`, `dc` and `field_visit`, so older
-   rows are wasted. Make a smaller copy (never changes your original; keeps one extra month; keeps any row whose date it
-   cannot read):
-   ```
-   python trim_data.py data/my-data.xlsx          (writes data/my-data-trimmed.xlsx)
-   ```
-   If the heavy sheet is another one, remove columns and blank rows you do not need in Excel (delete, do not just clear,
-   the empty rows at the bottom) and save as `.xlsx`.
-4. If the final check (it opens the updated pages and loads all the data at once) runs out of memory, add `--no-verify`
-   and open the pages in a browser to check them yourself.
-
-## "Access is denied" when the updater saves index.html (Windows)
-The updater now clears the Read-only flag, retries, and writes over the file if needed. If it still cannot save, it stops
-without changing anything and says why. Check, in order:
-1. **Read-only:** in the folder run `attrib -R index.html field.html`.
-2. **File open elsewhere:** close editors, previews and live-server tools, and stop any `python -m http.server`.
-3. **Antivirus, OneDrive or Windows "Controlled folder access"** blocking Python: pause it, allow `python.exe`, or copy the
-   whole folder to a simple path such as `C:\f360` and run it there.
-4. Delete leftover `index.html.tmp` and `field.html.tmp` files. Test write access with
-   `python -c "open('index.html','a').close(); print('writable')"`.
 
 ## Install on Android (Chrome)
 Open the link in Chrome, then either tap **Install Field360 on this phone** on the sign-in screen, or use the menu
@@ -209,34 +198,15 @@ Installing needs the secure `https://` link that GitHub Pages gives you.
 2. **Settings > Pages > Source: Deploy from a branch > main > / (root) > Save.**
 3. After a minute or two the site is at `https://YOURNAME.github.io/REPO/`.
 
-## Update the data
-1. Put your Excel file in `data/` (start from `data/field360-input-data-template.xlsx`).
-2. Install **Node.js** (the LTS version, from nodejs.org) once. Python 3.8 or newer is needed too.
-3. Run:
-   ```
-   python update_data.py data/your-file.xlsx
-   ```
-   It reads the file with the app's own loader, shows what it found, asks for confirmation, writes the data into
-   `index.html` and `field.html`, then opens them in a simulated browser to check. If the check fails it puts the
-   original files back.
-4. Upload the updated `index.html` and `field.html` to GitHub (replace the old ones). The site refreshes in a minute.
-
-Useful options: `--check` (only check the file), `--yes` (do not ask), `--backup` (keep `.bak` copies),
-`--html FILE ...` (update other files), `--label NAME` (the file name shown in the app).
-A large file takes a minute or two and needs a few GB of free memory. If Node.js runs out of memory, close other programs
-or add `--memory 4096` (megabytes, below the memory your computer has). Every sheet in the Excel file replaces what was there: a sheet that is empty or
-missing is not carried over (the app shows its built-in sample figures for it).
-
-### Optional: let GitHub update the site
-Upload your workbook as `data/field360-data.xlsx`. The workflow in `.github/workflows/update-data.yml` runs the same
-updater and commits the new `index.html` and `field.html`. Turn on **Settings > Actions > General > Workflow
-permissions > Read and write permissions** first. (This workflow could not be run before it was handed over,
-so check the **Actions** tab after your first upload.)
+## Load your data
+Open the app, go to **Data sources** (tap the *Sample figures* badge on the first screen, or Modules > Data sources), choose **One file for everything**
+and pick your Excel workbook (one sheet per dataset, see the template). The app reads the file in your browser, so there is nothing to install.
+The data is kept in that browser. To show the same data to everyone, use the pages that already contain your data (`field360-github-ready-with-your-data.zip`).
 
 ## Files
 | File | What it is |
 |---|---|
-| `index.html`, `field.html` | the full app and the field version, with the data inside |
-| `manifest.webmanifest`, `sw.js`, `icon-*.png` | what lets Android install it and open it offline |
-| `update_data.py` | puts the Excel data inside the two app files |
-| `data/` | the template workbook, and where your own workbook goes |
+| `index.html` | the app (full) |
+| `field.html` | the field presentation of the app |
+| `manifest.webmanifest`, `sw.js`, `icon-*.png` | make the app installable on a phone |
+| `data/field360-input-data-template.xlsx` | the workbook layout: every sheet and column, with a README and a data dictionary |
