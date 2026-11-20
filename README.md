@@ -149,6 +149,12 @@ branch_id, center_id, center_name, cre_id, cre_name, status, applied_amount, san
 - There is no Movement tab. Use the status **codes** in the file: the description *Pre Sanction Credit* is shared by P1, S2, S3
   and S4 and is read as P1. Older files with `snapshot_date` or an `applications` count column are still read.
 
+**How to read the funnel.** It has two parts, each with one number per row.
+- *Funnel · where the applications are today:* each application is counted **once, at the stage it is at now**, so the five stage numbers add up to the applications that
+  entered the process (draft and rejected are outside it). Under each stage are the statuses that make it up, and a stacked bar shows the split.
+- *Funnel · how far they got:* the cumulative view, worded as "Got to Pre-sanction or further": it includes applications that have since moved on, and the % is of those that
+  entered.
+
 ## Users: Employment Status
 Columns: `EMPLOYEECODE, Employee Name, Employment Status, unit_id, Unit, is_ho_user`. Only users whose Employment Status is
 Active (or blank) can sign in; anyone else sees "This account is not active". In `field_visit`, `created_by` is the
